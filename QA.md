@@ -47,3 +47,15 @@ Agent 与普通应用保留 CSS hover 和 focus-within 预览机制，实际浏�
 代码复查发现外层 `overflow:auto` 会裁掉悬停桥接伪元素。已改为外层 `overflow:visible`、内部任务列表滚动，并将窄屏桥接扩至 82px 覆盖 76px 间隙。普通 Word 的桥接不受该裁剪影响。点击固定、键盘进入、文档保持 AI 模式、Computer 同一会话和 Word 多窗口生命周期已实际验证。
 
 补充实际页面检查：Workbuddy 在完成「发布渠道建议」后，同时显示此任务的已打开文档及「竞品交互研究」的 Computer Use；仍为 AI Dock。1280px 计算样式：外层 overflow visible、连接区 33px；390px：连接区 82px、列表内部 overflow auto。无控制台错误。证据：`screenshots-v2/combined-task-context.png`。这些为点击操作和布局证据，不替代真实鼠标路径测试。
+
+## 用户补充修订：单行 Dock、Goal 目录树、独立文档卡
+
+- Dock 始终 `flex-wrap:nowrap`，增加应用时横向加长，达到屏幕宽度后内部横向滚动；左右按钮和键盘可操作，预览采用外层 Dock 定位，未被内部滚动裁切。
+- Bot 左侧目录树目标名称右侧显示实际任务归属 Agent，1–2 个并列，3–4 个扇形堆叠，完整名称通过 title 和 aria-label 提供。通过真实发送到新品发布 Goal 的任务依次验证 1、2、3、4 个 Agent。
+- 文档由原先嵌套的小条目改成独立窗口卡，已打开文档排在卡组前面；Computer Use 独立成卡，任务进度仍独立保留。
+- 实际浏览器打开千问两份文档：独立文档卡数 2；聚焦并关闭第一份后 1；关闭最后一份后 0；整个过程中任务进度卡数始终 6，AI Dock 始终存在。
+- 1280px 启动七个传统应用：全部 14 个 Dock 应用按钮 y 坐标均为 616，未换行。390px：按钮均在 y=758，滚动区可见宽304、内容宽967，点击右滚按钮可访问其余图标。预览窗口实际显示在滚动条上方，无裁剪。
+- 新增 Goal 参与 Agent 去重与 Goal 隔离测试，总计 44 项测试通过。控制台没有应用错误。
+- 真实无按键鼠标移动仍未实测：本次工具没有公开 move/hover API，未用 DOM 事件伪造。所有交互验证为实际点击/键盘，截图显示其最终可见状态。
+
+证据：`screenshots-v2/goal-fan-three.png`、`screenshots-v2/independent-document-cards.png`、`screenshots-v2/single-row-mobile.png`。

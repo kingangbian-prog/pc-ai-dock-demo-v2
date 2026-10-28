@@ -170,3 +170,5 @@ export function loadState(storage) {
   return seedState();
 }
 export function saveState(storage,state) { try{storage.setItem(STORAGE_KEY,JSON.stringify(state));return true;}catch{return false;} }
+
+export function goalAgents(state,goal){return [...new Set(state.tasks.filter(t=>t.goal===goal&&AGENTS[t.agent]).map(t=>t.agent))];}
