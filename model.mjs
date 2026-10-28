@@ -50,7 +50,7 @@ export const APP_NAMES = {files:'文件',browser:'浏览器',editor:'Office Word
 export const CONNECTIONS = {mail:'邮箱',computer:'Computer Use',wechat:'微信',feishu:'飞书'};
 export function seedState() {
   return ensureAgentDemoTasks({
-    schema:1, agentIdentityVersion:2, serial:10, mode:'ai', selectedGoal:'desktop',
+    schema:1, connectCollapsed:false, agentIdentityVersion:2, serial:10, mode:'ai', selectedGoal:'desktop',
     goals:[
       {id:'desktop',name:'桌面 AI 体验研究',subtitle:'为下周评审，准备一份有依据的交互简报。',messages:[
         {role:'user',text:'研究桌面 AI 助手的交互方式，整理一份评审简报。',time:'10:20'},
@@ -94,6 +94,7 @@ export function reduce(state, event, now=Date.now()) {
   const cu=s.session;
   switch(event.type) {
     case 'MODE': s.mode=event.mode==='normal'?'normal':'ai'; break;
+    case 'TOGGLE_CONNECT': s.connectCollapsed=!s.connectCollapsed;break;
     case 'GOAL': if(s.goals.some(g=>g.id===event.goal)) s.selectedGoal=event.goal; break;
     case 'SEND': {
       const text=String(event.text||'').trim();
