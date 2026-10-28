@@ -58,3 +58,8 @@ export function toggleAgent(ui,agent,open,{previewVisible=false}={}) {
 // Only actual pointer movement outside the owner releases close suppression.
 // Re-rendering a node under a stationary pointer cannot reopen it.
 export function releaseAgentHover(ui,agent) { ui.suppressedAgents.delete(agent); }
+// Minimized documents still exist. A Computer session remains accessible in every control phase.
+export function canDismissTaskHover(windows,session,task){
+ if(!task)return false;
+ return ![...windows.values()].some(w=>w.task===task&&w.output)&&session?.task!==task;
+}

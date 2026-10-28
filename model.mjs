@@ -119,10 +119,11 @@ export function reduce(state, event, now=Date.now()) {
     }
     case 'VIEW': if(t?.status==='result') t.unread=false; break;
     case 'VIEW_OUTPUT': {const o=s.outputs.find(o=>o.id===event.output);const task=s.tasks.find(t=>t.id===o?.task);if(task?.status==='result')task.unread=false;break;}
+    case 'DISMISS_TASK_HOVER': if(t)t.hoverHidden=true;break;
     case 'OPEN_DRAFT': {
       const o=s.outputs.find(o=>o.id===event.output); if(!o)return state;
       s.drafts[o.id]??={title:o.title,text:o.content};
-      const task=s.tasks.find(t=>t.id===o.task); if(task)task.unread=false; break;
+      const task=s.tasks.find(t=>t.id===o.task); if(task){task.unread=false;task.hoverHidden=false;} break;
     }
     case 'EDIT_DRAFT': if(s.drafts[event.id])s.drafts[event.id].text=String(event.text);break;
     case 'AUTHORIZE': if(t?.status==='auth') Object.assign(t,event.allow?{status:'running',stage:'authorization',step:'本次模拟授权已确认，正在整理资料',detail:'已确认授权，正在整理演示资料',dueAt:now+2000}:{status:'paused',step:'你拒绝了本次模拟授权，任务已暂停',detail:'本次模拟授权被拒绝',denied:true});break;

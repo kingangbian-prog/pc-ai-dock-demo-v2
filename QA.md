@@ -59,3 +59,9 @@ Agent 与普通应用保留 CSS hover 和 focus-within 预览机制，实际浏�
 - 真实无按键鼠标移动仍未实测：本次工具没有公开 move/hover API，未用 DOM 事件伪造。所有交互验证为实际点击/键盘，截图显示其最终可见状态。
 
 证据：`screenshots-v2/goal-fan-three.png`、`screenshots-v2/independent-document-cards.png`、`screenshots-v2/single-row-mobile.png`。
+
+## 生命周期最终修订（覆盖此前“任务卡保留”要求）
+
+关闭任务最后一个文档后，Agent 预览中的文档卡和相关任务卡同时隐藏，其他任务不变。隐藏偏好随任务记录持久化；不删除历史、Goal、草稿或输出，不改变执行状态。仍有同任务文档（包括最小化窗口）或 Computer 会话时保留活跃入口；重新打开文档重置隐藏偏好。
+
+实际浏览器：最小化 output-seed 后文档卡=1、writer-draft 任务卡=1；恢复并关闭后文档卡=0、任务卡=0，其他任务仍为5；从 Goal 输出历史重新打开后两类卡均恢复为1，保持 AI Dock。多文档与 Computer 保护由独立生命周期单测覆盖，运行状态与会话不变另有测试。47 项测试通过，语法检查通过。真实无按键鼠标路径仍受工具接口限制，未声称实测。
