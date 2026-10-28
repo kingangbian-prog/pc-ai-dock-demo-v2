@@ -63,3 +63,6 @@ export function canDismissTaskHover(windows,session,task){
  if(!task)return false;
  return ![...windows.values()].some(w=>w.task===task&&w.output)&&session?.task!==task;
 }
+export function runningAppKeys(windows){
+ return [...new Set([...windows.values()].map(w=>w.app||(w.id==='editor'?'editor':null)).filter(Boolean))];
+}
