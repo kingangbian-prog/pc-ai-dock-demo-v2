@@ -39,3 +39,9 @@ Agent 与普通应用保留 CSS hover 和 focus-within 预览机制，实际浏�
 - `screenshots-v2/published-task.png`：公开站实际任务文档聚合。
 
 `screenshots/` 是继承的 1.0 历史截图，请以 `screenshots-v2/` 作为 2.0 证据。
+
+## Hover follow-up
+
+工具公开 API 只有点击、拖动、滚动和键盘；没有鼠标移动或 locator.hover。工具清单与浏览器文档未发现其他可用 hover 接口。未用脚本事件伪造 hover，因此真实鼠标从 Dock 移入预览的路径仍未实测。
+
+代码复查发现外层 `overflow:auto` 会裁掉悬停桥接伪元素。已改为外层 `overflow:visible`、内部任务列表滚动，并将窄屏桥接扩至 82px 覆盖 76px 间隙。普通 Word 的桥接不受该裁剪影响。点击固定、键盘进入、文档保持 AI 模式、Computer 同一会话和 Word 多窗口生命周期已实际验证。

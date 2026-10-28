@@ -64,3 +64,7 @@ input,textarea{user-select:text}
 @media(max-width:760px){.ai-dock .dock-body{flex-wrap:wrap;justify-content:center}.ai-dock .dock-app{width:36px;height:45px}.ai-dock .app-icon{width:30px;height:30px}.ai-dock .dock-label{font-size:8px}.ordinary-preview{position:fixed;bottom:160px;right:12px;width:240px}.goal-agents{flex-wrap:wrap}.task-preview{max-height:calc(100vh - 240px)}.command-form{order:10!important}.dock-caption{display:none}}
 .window-excerpt{display:block;font-style:normal;white-space:pre-line;font-size:10px;line-height:1.5;max-height:46px;overflow:hidden;color:#718096}.task-context .window-tile{min-height:88px}.task-context .bot-source{position:relative;right:0;top:0}.task-context .task-open{padding-top:0}
 .ai-dock .dock-body{flex-wrap:wrap;justify-content:center}.ordinary-preview .window-tile{min-height:60px}
+/* Keep the pointer bridge outside the scroll container; clipping it drops hover in the Dock gap. */
+.task-preview{overflow:visible;max-height:none;display:none}
+.task-preview>.preview-task-list{max-height:min(410px,calc(100vh - 280px));overflow:auto}
+@media(max-width:760px){.task-preview:after{bottom:-80px;height:82px}.task-preview>.preview-task-list{max-height:calc(100vh - 360px)}}
