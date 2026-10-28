@@ -2,7 +2,7 @@ import {icon} from './icons.mjs';
 import {LiveProgressCard} from './live-card.mjs';
 import {DockFlip} from './dock-flip.mjs';
 import {canDismissTaskHover,launcherWindow,windowVisible,closeWindow,toggleWindow,toggleStart,claimAgentWindow,toggleAgent,releaseAgentHover} from './surfaces.mjs';
-import {AGENTS,AGENT_ORDER,goalAgents,ORDINARY_APPS,APP_NAMES,CONNECTIONS,STORAGE_KEY,seedState,reduce,loadState,saveState,statusInfo,hoverDetail} from './model.mjs';
+import {AGENTS,AGENT_ORDER,goalAgents,ORDINARY_APPS,APP_NAMES,CONNECTIONS,STORAGE_KEY,seedState,reduce,loadState,saveState,statusInfo,hoverDetail} from './model.mjs?v=20261028-connect';
 
 const $=s=>document.querySelector(s);
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
