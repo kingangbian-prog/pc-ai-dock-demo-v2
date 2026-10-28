@@ -45,7 +45,7 @@ function showWindow(id,opts={}){
 function openTask(id){liveCard.dismiss(true);liveCard.blocked.add(id);const task=state.tasks.find(t=>t.id===id);if(!task)return;ui.activeTasks[task.agent]=id;claimAgentWindow(ui,task.agent);dispatch({type:'VIEW',task:id},{renderNow:false});showWindow('agent-'+task.agent);render();}
 function openOutput(goal,id){ui.outputGoal=goal;const outputs=state.outputs.filter(o=>o.goal===goal);ui.outputId=id||outputs.at(-1)?.id;if(ui.outputId)dispatch({type:'VIEW_OUTPUT',output:ui.outputId},{renderNow:false});showWindow('output');render();}
 function openDraft(output){const o=state.outputs.find(o=>o.id===output);if(!o)return;const t=state.tasks.find(t=>t.id===o.task);dispatch({type:'OPEN_DRAFT',output},{renderNow:false});showWindow('doc-'+output,{output,task:t?.id,agent:t?.agent});ui.pinnedAgent=null;render();}
-function openApp(app){const id=launcherWindow('app',app);showWindow(id,{app});ui.launcher=false;ui.apps=false;render();}
+function openApp(app){const existing=[...ui.windows.values()].filter(w=>w.app===app||(app==='editor'&&w.id==='editor')).sort((a,b)=>b.z-a.z)[0];const id=existing?.id||launcherWindow('app',app);showWindow(id,{app});ui.launcher=false;ui.apps=false;render();}
 
 function statusBar(){
  const time=new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',hour12:false});
@@ -64,6 +64,7 @@ function windowMarkup(w){
  if(w.id==='bot'){title='Bot';smallIcon='bot';body=botBody();}
  else if(w.id.startsWith('doc-')){title=state.drafts[w.output]?.title||'任务文档';smallIcon='editor';body=editorBody(w.output,w.id);}
  else if(w.id==='editor'){title=state.drafts[ui.activeDraft]?.title||'文稿';smallIcon='editor';body=editorBody(ui.activeDraft,w.id);}
+ else if(w.app==='editor'){title='Office Word';smallIcon='editor';body=editorBody('personal',w.id);}
  else if(w.id==='computer'){title='Computer Use';smallIcon='computer';body=computerBody();}
  else if(w.id==='output'){title='目标输出';smallIcon='output';body=outputBody();}
  else if(w.id==='guide'){title='体验指南';smallIcon='shield';body=guideBody();}
