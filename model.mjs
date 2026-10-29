@@ -174,3 +174,8 @@ export function loadState(storage) {
 export function saveState(storage,state) { try{storage.setItem(STORAGE_KEY,JSON.stringify(state));return true;}catch{return false;} }
 
 export function goalAgents(state,goal){return [...new Set(state.tasks.filter(t=>t.goal===goal&&AGENTS[t.agent]).map(t=>t.agent))];}
+// Notifications describe attention already required by simulated tasks; reading them cannot advance work.
+export function notificationTasks(state){
+ const priority={auth:0,input:1,failed:2,result:3};
+ return state.tasks.filter(t=>['auth','input','failed'].includes(t.status)||(t.status==='result'&&t.unread)).slice().sort((a,b)=>priority[a.status]-priority[b.status]);
+}

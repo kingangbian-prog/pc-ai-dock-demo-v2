@@ -1,4 +1,5 @@
 const paths = {
+  bell:'<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/>',
   workbuddy:'<text x="12" y="17.5" text-anchor="middle" fill="currentColor" stroke="none" font-family="Arial,sans-serif" font-size="16" font-weight="700">W</text>',
   qianwen:'<text x="12" y="17.5" text-anchor="middle" fill="currentColor" stroke="none" font-family="PingFang SC,Microsoft YaHei,sans-serif" font-size="16" font-weight="600">千</text>',
   doubao:'<text x="12" y="17.5" text-anchor="middle" fill="currentColor" stroke="none" font-family="PingFang SC,Microsoft YaHei,sans-serif" font-size="16" font-weight="600">豆</text>',
