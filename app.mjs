@@ -1,13 +1,15 @@
-import {icon} from './icons.mjs?v=20261029-bot-title';
-import {LiveProgressCard} from './live-card.mjs?v=20261029-bot-title';
+import {icon} from './icons.mjs?v=20261029-desktop-copy';
+import {LiveProgressCard} from './live-card.mjs?v=20261029-desktop-copy';
 import {DockFlip} from './dock-flip.mjs';
-import {runningAppKeys,canDismissTaskHover,launcherWindow,windowVisible,closeWindow,toggleWindow,toggleStart,claimAgentWindow,toggleAgent,releaseAgentHover} from './surfaces.mjs?v=20261029-bot-title';
-import {AGENTS,AGENT_ORDER,goalAgents,notificationTasks,ORDINARY_APPS,APP_NAMES,CONNECTIONS,STORAGE_KEY,seedState,reduce,loadState,saveState,statusInfo,hoverDetail} from './model.mjs?v=20261029-bot-title';
+import {runningAppKeys,canDismissTaskHover,launcherWindow,windowVisible,closeWindow,toggleWindow,toggleStart,claimAgentWindow,toggleAgent,releaseAgentHover} from './surfaces.mjs?v=20261029-desktop-copy';
+import {AGENTS,AGENT_ORDER,goalAgents,notificationTasks,ORDINARY_APPS,APP_NAMES,CONNECTIONS,STORAGE_KEY,seedState,reduce,loadState,saveState,statusInfo,hoverDetail} from './model.mjs?v=20261029-desktop-copy';
 
 const $=s=>document.querySelector(s);
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let state=loadState(localStorage);
 const ui={windows:new Map(),z:10,section:'goals',connection:'mail',activeTasks:{},agentSurfaces:{},suppressedAgents:new Set(),hoveredAgent:null,focusedAgent:null,outputGoal:state.selectedGoal,outputId:null,activeDraft:'personal',botInput:'',dockInput:'',agent:'xiaoyi',manual:state.session.manualText,choice:'专业用户',launcher:false,apps:false,pinnedAgent:null,sidebar:false,storageWarn:false,liveExpanded:false,liveScroll:0,notifications:false};
+const AI_DESKTOP_COPY='AI桌面--老板模式： 任务指令一步直达， Agent状态一步直达，Bot全程帮你管 ；';
+const NORMAL_DESKTOP_COPY='传统桌面--古法办公模式';
 const BOT_WINDOW_TITLE='我的工作幕僚长： 统一目标.跨Agent协作. 统一任务管理.关键决策找你';
 const desktop=$('#desktop');
 // Persistent siblings keep the Dock animation alive while task windows refresh.
@@ -61,7 +63,7 @@ function liveCapsule(){
  const representatives=[];for(const t of tasks)if(!representatives.some(x=>x.agent===t.agent))representatives.push(t);
  return `<aside class="live-capsule ${ui.liveExpanded?'is-expanded':''}" aria-label="AI 实况"><button id="live-summary" class="live-heading" data-action="live-summary" aria-label="${innerWidth<=760?(ui.liveExpanded?'收起 AI 实况状态':'展开 AI 实况状态'):'查看 AI 实况状态'}" ${innerWidth<=760?`aria-expanded="${ui.liveExpanded}" aria-controls="menu-live-items"`:''}><span class="live-orbit"></span><span>AI 实况</span><span class="live-count">${tasks.length}</span>${icon('chevron')}</button><div id="menu-live-items" class="live-items" ${innerWidth<=760&&!ui.liveExpanded?'inert aria-hidden="true"':''}>${representatives.slice(0,5).map(t=>{const [label,color]=statusInfo(t);return `<button id="live-item-${t.id}" class="live-item ${color}" aria-haspopup="dialog" aria-expanded="${liveCard.taskId===t.id}" data-action="task" data-task="${t.id}" aria-label="${esc(AGENTS[t.agent].name+' '+t.title+' '+label)}">${icon(AGENTS[t.agent].icon)}<span>${AGENTS[t.agent].short||'小艺'}${t.status==='result'?'有新结果':t.status==='auth'?'待授权':t.status==='input'?'待补充':t.status==='failed'?'失败':t.status==='pausing'?'待暂停':'进行中'}</span></button>`;}).join('')}</div><button class="live-more" data-action="bot" aria-label="在 Bot 查看全部任务">${icon('right')}</button></aside>`;
 }
-function desktopShortcuts(){return `<nav class="desktop-shortcuts" aria-label="桌面快捷方式"><button data-action="app" data-app="files">${appIcon('files')}<span>我的文件</span></button><button data-action="editor">${appIcon('editor')}<span>新品发布计划</span></button><button data-action="guide">${appIcon('shield')}<span>体验指南</span></button></nav><div class="desktop-signature"><span class="signature-ring">${icon('ring')}</span><div>你的桌面，你的节奏。<small>任务持续进行，控制权始终清晰。</small></div></div>`;}
+function desktopShortcuts(){const copy=state.mode==='ai'?AI_DESKTOP_COPY:NORMAL_DESKTOP_COPY;return `<nav class="desktop-shortcuts" aria-label="桌面快捷方式"><button data-action="app" data-app="files">${appIcon('files')}<span>我的文件</span></button><button data-action="editor">${appIcon('editor')}<span>新品发布计划</span></button><button data-action="guide">${appIcon('shield')}<span>体验指南</span></button></nav><div class="desktop-signature" data-mode="${state.mode}"><span class="signature-ring">${icon('ring')}</span><p title="${esc(copy)}">${esc(copy)}</p></div>`;}
 function controls(id){return `<div class="window-controls"><button data-action="minimize" data-window="${id}" aria-label="最小化窗口" class="min-control"><span></span></button><button data-action="maximize" data-window="${id}" aria-label="切换窗口大小" class="max-control"><span></span></button><button data-action="close" data-window="${id}" aria-label="关闭窗口" class="close-control">${icon('close')}</button></div>`;}
 function windowMarkup(w){
  let title,body,smallIcon;

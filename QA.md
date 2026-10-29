@@ -139,3 +139,13 @@ Bot窗口顶部标题及其窗口可访问名称替换为用户原文：
 实际浏览器1280px：textContent及title属性逐字相同，完整单行显示；390px两行显示，标题与窗口控制按钮边界不重叠。移动端目录起点使用真实标题栏高度，确认不盖住标题。320px下仍完整换行，关闭按钮中心命中close按钮；实际关闭重开Bot标题不变，无控制台错误。
 
 51项现有回归及7模块语法检查通过。截图：`screenshots-v2/bot-title-desktop.png`、`bot-title-mobile.png`。已收到用户对本轮修改测试后发布的单独明确授权。
+
+## 2026-10-29：壁纸模式文案
+
+仅替换壁纸旧主副标语，AI显示原文 `AI桌面--老板模式： 任务指令一步直达， Agent状态一步直达，Bot全程帮你管 ；`，传统模式显示 `传统桌面--古法办公模式`。双连字符、标点和空格保留。Bot标题和其他产品文案未改。
+
+直接使用当前持久化state.mode，和Dock翻面在隐藏中点提交的模式共用同一render，没有另设异步文案状态。宽屏实际六次双向切换，in动画阶段抽样中Dock模式、signature data-mode、完整文案均匹配；既有DockFlip单测继续覆盖out/中点/重复请求。AI及normal各自刷新后文案与模式保持。
+
+1280px、390px和320px实际检查：AI长文案在窄屏自动换行，位于视口内，底部未与Dock重叠。标语使用背景层z-index及pointer-events:none，不覆盖窗口操作。移除旧副文案，不重复堆砌。窄屏双向切换正常，Bot完整标题未变，无控制台错误。
+
+51项现有回归与7模块语法检查通过。截图：`screenshots-v2/wallpaper-ai.png`、`wallpaper-normal.png`、`wallpaper-mobile-ai.png`、`wallpaper-mobile-normal.png`。已另外收到本轮测试通过后发布的明确批准。
