@@ -115,3 +115,15 @@ Connect 已在线实际验证点击收起后 aria-expanded=false、子项不可�
 新增通知筛选、优先级、非变更和空状态模型测试；全部50项测试及7模块语法检查通过。
 
 截图：`screenshots-v2/notifications-desktop.png`、`notifications-mobile.png`、`notifications-empty.png`。本次仅本地实现；遵守发布待确认要求，未重试push/deploy。
+
+## 2026-10-29：Goals 独立展开/收起
+
+基于已发布062fdef，开始时工作区干净。Goals标题及箭头改为折叠按钮，含aria-expanded/aria-controls，收起使用hidden/inert隐藏全部目标子项，不改变当前section、选中Goal及右侧内容。默认展开；goalsCollapsed与connectCollapsed独立持久化。
+
+实际浏览器1280×720：点击、Enter、Space、箭头均正常，连续6次切换后状态一致。收起前后右侧bot-main全文相同，Connect状态不变；关闭重开Bot与刷新保持折叠。展开恢复2组Goal Agent图标。
+
+390×844：打开目录后Space收起、Enter展开正常；Goals展开时Connect可仍收起，互不影响。通知面板开关及实况↓进入进度卡回归通过，无控制台错误。
+
+新增默认展开、独立状态、数据保留、持久化与重复切换测试；总计51项通过，7个模块语法检查通过。截图：`screenshots-v2/goals-collapsed.png`、`goals-mobile-expanded.png`。
+
+用户已另外明确同意本项测试通过后发布到现有2.0地址。
