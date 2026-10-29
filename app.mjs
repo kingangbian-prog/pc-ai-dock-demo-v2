@@ -1,13 +1,14 @@
-import {icon} from './icons.mjs?v=20261029-goals';
-import {LiveProgressCard} from './live-card.mjs?v=20261029-goals';
+import {icon} from './icons.mjs?v=20261029-bot-title';
+import {LiveProgressCard} from './live-card.mjs?v=20261029-bot-title';
 import {DockFlip} from './dock-flip.mjs';
-import {runningAppKeys,canDismissTaskHover,launcherWindow,windowVisible,closeWindow,toggleWindow,toggleStart,claimAgentWindow,toggleAgent,releaseAgentHover} from './surfaces.mjs?v=20261029-goals';
-import {AGENTS,AGENT_ORDER,goalAgents,notificationTasks,ORDINARY_APPS,APP_NAMES,CONNECTIONS,STORAGE_KEY,seedState,reduce,loadState,saveState,statusInfo,hoverDetail} from './model.mjs?v=20261029-goals';
+import {runningAppKeys,canDismissTaskHover,launcherWindow,windowVisible,closeWindow,toggleWindow,toggleStart,claimAgentWindow,toggleAgent,releaseAgentHover} from './surfaces.mjs?v=20261029-bot-title';
+import {AGENTS,AGENT_ORDER,goalAgents,notificationTasks,ORDINARY_APPS,APP_NAMES,CONNECTIONS,STORAGE_KEY,seedState,reduce,loadState,saveState,statusInfo,hoverDetail} from './model.mjs?v=20261029-bot-title';
 
 const $=s=>document.querySelector(s);
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let state=loadState(localStorage);
 const ui={windows:new Map(),z:10,section:'goals',connection:'mail',activeTasks:{},agentSurfaces:{},suppressedAgents:new Set(),hoveredAgent:null,focusedAgent:null,outputGoal:state.selectedGoal,outputId:null,activeDraft:'personal',botInput:'',dockInput:'',agent:'xiaoyi',manual:state.session.manualText,choice:'专业用户',launcher:false,apps:false,pinnedAgent:null,sidebar:false,storageWarn:false,liveExpanded:false,liveScroll:0,notifications:false};
+const BOT_WINDOW_TITLE='我的工作幕僚长： 统一目标.跨Agent协作. 统一任务管理.关键决策找你';
 const desktop=$('#desktop');
 // Persistent siblings keep the Dock animation alive while task windows refresh.
 desktop.innerHTML='<div id=desktop-content></div><div id=dock-mount></div>';
@@ -64,7 +65,7 @@ function desktopShortcuts(){return `<nav class="desktop-shortcuts" aria-label="�
 function controls(id){return `<div class="window-controls"><button data-action="minimize" data-window="${id}" aria-label="最小化窗口" class="min-control"><span></span></button><button data-action="maximize" data-window="${id}" aria-label="切换窗口大小" class="max-control"><span></span></button><button data-action="close" data-window="${id}" aria-label="关闭窗口" class="close-control">${icon('close')}</button></div>`;}
 function windowMarkup(w){
  let title,body,smallIcon;
- if(w.id==='bot'){title='Bot';smallIcon='bot';body=botBody();}
+ if(w.id==='bot'){title=BOT_WINDOW_TITLE;smallIcon='bot';body=botBody();}
  else if(w.id.startsWith('doc-')){title=state.drafts[w.output]?.title||'任务文档';smallIcon='editor';body=editorBody(w.output,w.id);}
  else if(w.id==='editor'){title=state.drafts[ui.activeDraft]?.title||'文稿';smallIcon='editor';body=editorBody(ui.activeDraft,w.id);}
  else if(w.app==='editor'){title='Office Word';smallIcon='editor';body=editorBody('personal',w.id);}
@@ -73,7 +74,7 @@ function windowMarkup(w){
  else if(w.id==='guide'){title='体验指南';smallIcon='shield';body=guideBody();}
  else if(w.id.startsWith('agent-')){const a=w.id.slice(6);title=AGENTS[a].name;smallIcon=AGENTS[a].icon;body=agentBody(a);}
  else {const app=w.app||w.id.slice(4);title=APP_NAMES[app];smallIcon=app;body=ordinaryBody(app);}
- return `<section class="window ${w.id==='bot'?'bot-window':''} ${w.maximized?'maximized':''}" data-window="${w.id}" style="--wx:${w.x}px;--wy:${w.y}px;--ww:${w.w}px;--wh:${w.h}px;z-index:${w.z}" aria-label="${esc(title)}窗口"><header class="titlebar" data-drag="${w.id}"><div class="window-title">${w.id==='bot'?'<button class="mobile-tree" data-action="toggle-tree" aria-label="打开工作空间目录" aria-expanded="'+ui.sidebar+'">'+icon('grid')+'</button>':''}${icon(smallIcon)}<strong>${esc(title)}</strong>${w.id==='bot'?'<span class="window-subtitle">一个入口，持续推进</span>':'<span class="window-subtitle">模拟</span>'}</div>${controls(w.id)}</header>${body}</section>`;
+ return `<section class="window ${w.id==='bot'?'bot-window':''} ${w.maximized?'maximized':''}" data-window="${w.id}" style="--wx:${w.x}px;--wy:${w.y}px;--ww:${w.w}px;--wh:${w.h}px;z-index:${w.z}" aria-label="${esc(title)}窗口"><header class="titlebar" data-drag="${w.id}"><div class="window-title">${w.id==='bot'?'<button class="mobile-tree" data-action="toggle-tree" aria-label="打开工作空间目录" aria-expanded="'+ui.sidebar+'">'+icon('grid')+'</button>':''}${icon(smallIcon)}<strong ${w.id==='bot'?`title="${esc(title)}"`:''}>${esc(title)}</strong>${w.id==='bot'?'':'<span class="window-subtitle">模拟</span>'}</div>${controls(w.id)}</header>${body}</section>`;
 }
 function tree(){return `<aside class="bot-sidebar ${ui.sidebar?'expanded':''}" ${innerWidth<=540&&!ui.sidebar?'inert aria-hidden="true"':''}><div class="sidebar-brand">${appIcon('bot','small')}<div>个人工作空间<small>仅保存在这台浏览器</small></div></div><div class="tree-label">工作空间</div><button class="tree-heading ${ui.section==='goals'?'chosen':''}" id="goals-toggle" data-action="toggle-goals" aria-expanded="${!state.goalsCollapsed}" aria-controls="goals-children">${icon('goal')}<span>Goals</span><small>${state.goals.length}</small>${icon('chevron')}</button><div id="goals-children" class="goal-tree" ${state.goalsCollapsed?'hidden inert':''}>${state.goals.map(g=>`<button data-action="goal" data-goal="${g.id}" class="goal-link ${ui.section==='goals'&&state.selectedGoal===g.id?'selected':''}"><span class="tree-stem"></span><span class="goal-name">${esc(g.name)}</span>${goalAgentIcons(g.id)}</button>`).join('')}</div><button class="tree-heading ${ui.section==='ideas'?'chosen':''}" data-action="section" data-section="ideas">${icon('ideas')}<span>Ideas</span></button><button class="tree-heading ${ui.section==='connect'?'chosen':''}" id="connect-toggle" data-action="toggle-connect" aria-expanded="${!state.connectCollapsed}" aria-controls="connect-children">${icon('connect')}<span>Connect</span>${icon('chevron')}</button><div id="connect-children" class="connect-tree" ${state.connectCollapsed?'hidden inert':''}>${Object.entries(CONNECTIONS).map(([k,n])=>`<button data-action="connection" data-connection="${k}" class="connection-link ${ui.section==='connect'&&ui.connection===k?'selected':''}">${icon(k==='computer'?'computer':k==='mail'?'mail':'chat')}<span>${n}</span><span class="disconnected-dot" title="未连接"></span></button>`).join('')}</div><div class="sidebar-bottom">${icon('shield')}<span>本地模拟 · 无外部连接</span></div></aside>`;}
 function botBody(){
@@ -107,6 +108,7 @@ function render({forceDock=false}={}){
  if(!dockFlip.active||forceDock)dockMount.innerHTML=dock();
  for(const [key,top] of scrolls){const el=[...document.querySelectorAll('.conversation-scroll,.result-content,.task-detail,.preview-task-list,.paper,.operation-log')].find(e=>(e.id||e.className)===key);if(el)el.scrollTop=top;}
  if(focusId){const el=document.getElementById(focusId);if(el&&!el.disabled){el.focus({preventScroll:true});if(selection?.[0]!=null)try{el.setSelectionRange(...selection);}catch{}}}
+ const botWindow=$('.bot-window');if(botWindow)botWindow.style.setProperty('--bot-title-height',botWindow.querySelector('.titlebar').getBoundingClientRect().height+'px');
  const liveItems=$('.live-items');if(liveItems){liveItems.scrollLeft=ui.liveScroll;liveItems.addEventListener('scroll',()=>{ui.liveScroll=liveItems.scrollLeft;liveCard.update();},{passive:true});}
  const scroll=$('.dock-body');if(scroll){scroll.closest('.dock').classList.toggle('has-overflow',scroll.scrollWidth>scroll.clientWidth+1);scroll.scrollLeft=ui.dockScroll||0;scroll.addEventListener('scroll',()=>{ui.dockScroll=scroll.scrollLeft;syncAgentPreviews();},{passive:true});}
  syncAgentPreviews();
