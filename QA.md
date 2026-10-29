@@ -149,3 +149,13 @@ Bot窗口顶部标题及其窗口可访问名称替换为用户原文：
 1280px、390px和320px实际检查：AI长文案在窄屏自动换行，位于视口内，底部未与Dock重叠。标语使用背景层z-index及pointer-events:none，不覆盖窗口操作。移除旧副文案，不重复堆砌。窄屏双向切换正常，Bot完整标题未变，无控制台错误。
 
 51项现有回归与7模块语法检查通过。截图：`screenshots-v2/wallpaper-ai.png`、`wallpaper-normal.png`、`wallpaper-mobile-ai.png`、`wallpaper-mobile-normal.png`。已另外收到本轮测试通过后发布的明确批准。
+
+## 2026-10-29：Ideas 四个子节点
+
+核实原结构只有Ideas总会话，没有子节点；保留原channels.ideas和标题点击行为，新增独立箭头展开/收起及四个子项：构筑本地context、AI实况窗晾衣架、AI屏、懂你的Agent。选择沿用已有树节点→右侧会话展示模式，aria-current标注唯一选中；无内容只给一句占位，不虚构具体产品方案。
+
+固定ID按需迁移，已有同名节点不重复添加；保留用户节点字段、原Ideas消息、Goal、任务及草稿。新增子项使用独立idea-ID会话；选择、折叠持久化，切回Goal/Connect正常。Ideas标题始终可进入原总会话。
+
+实际浏览器1280×720与390×844：四个名称逐项点击，右侧h1与选中项逐字一致；一项写入记录，另一项不混入，回原项仍保留。刷新保持当前子项和唯一选中，节点总数仍4；原Ideas总会话前后全文一致。箭头/Enter/Space折叠展开不改变右侧内容，折叠后刷新仍保留。Goals/Connect独立展开、选择和导航回归通过。无控制台错误。
+
+新增迁移去重/保留历史、选择持久化、子项记录隔离及根节点/Goal导航测试；55项测试与7模块语法检查通过。截图：`screenshots-v2/ideas-children-desktop.png`、`ideas-children-mobile.png`。已收到用户对本轮公开发布的单独明确批准。

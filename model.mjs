@@ -1,3 +1,18 @@
+export const IDEA_NODES=Object.freeze([
+ {id:'demo-idea-local-context',name:'构筑本地context'},
+ {id:'demo-idea-live-hanger',name:'AI实况窗晾衣架'},
+ {id:'demo-idea-ai-screen',name:'AI屏'},
+ {id:'demo-idea-personal-agent',name:'懂你的Agent'},
+]);
+export function ensureIdeaNodes(state){
+ const existing=Array.isArray(state.ideas)?state.ideas:[],ids=new Set(existing.map(i=>i.id)),names=new Set(existing.map(i=>i.name));
+ const additions=IDEA_NODES.filter(i=>!ids.has(i.id)&&!names.has(i.name)).map(i=>({...i}));
+ const ideas=additions.length?[...existing,...additions]:existing;
+ const invalid=state.selectedIdea&&!ideas.some(i=>i.id===state.selectedIdea);
+ if(Array.isArray(state.ideas)&&!additions.length&&!invalid)return state;
+ return {...state,ideas,...(invalid?{selectedIdea:null}:{})};
+}
+export function ideaChannel(id){return id?'idea-'+id:'ideas';}
 export const STORAGE_KEY = 'ai-dock-prototype-v2';
 export const AGENTS = {
   xiaoyi:{name:'小艺',selectorLabel:'小艺',icon:'ring',color:'xiaoyi',role:'协调与确认'},
@@ -50,7 +65,7 @@ export const APP_NAMES = {files:'文件',browser:'浏览器',editor:'Office Word
 export const CONNECTIONS = {mail:'邮箱',computer:'Computer Use',wechat:'微信',feishu:'飞书'};
 export function seedState() {
   return ensureAgentDemoTasks({
-    schema:1, goalsCollapsed:false, connectCollapsed:false, agentIdentityVersion:2, serial:10, mode:'ai', selectedGoal:'desktop',
+    schema:1, ideas:IDEA_NODES.map(i=>({...i})),selectedIdea:null,ideaOpen:false,ideasCollapsed:false,goalsCollapsed:false, connectCollapsed:false, agentIdentityVersion:2, serial:10, mode:'ai', selectedGoal:'desktop',
     goals:[
       {id:'desktop',name:'桌面 AI 体验研究',subtitle:'为下周评审，准备一份有依据的交互简报。',messages:[
         {role:'user',text:'研究桌面 AI 助手的交互方式，整理一份评审简报。',time:'10:20'},
@@ -94,13 +109,16 @@ export function reduce(state, event, now=Date.now()) {
   const cu=s.session;
   switch(event.type) {
     case 'MODE': s.mode=event.mode==='normal'?'normal':'ai'; break;
+    case 'IDEA_SELECT': if(event.idea!=null&&!s.ideas?.some(i=>i.id===event.idea))return state;s.selectedIdea=event.idea??null;s.ideaOpen=true;if(event.expand)s.ideasCollapsed=false;break;
+    case 'IDEA_LEAVE': s.ideaOpen=false;break;
+    case 'TOGGLE_IDEAS': s.ideasCollapsed=!s.ideasCollapsed;break;
     case 'TOGGLE_GOALS': s.goalsCollapsed=!s.goalsCollapsed;break;
     case 'TOGGLE_CONNECT': s.connectCollapsed=!s.connectCollapsed;break;
-    case 'GOAL': if(s.goals.some(g=>g.id===event.goal)) s.selectedGoal=event.goal; break;
+    case 'GOAL': if(s.goals.some(g=>g.id===event.goal)){s.selectedGoal=event.goal;s.ideaOpen=false;} break;
     case 'SEND': {
       const text=String(event.text||'').trim();
       if(!text || !s.goals.some(g=>g.id===event.goal)) return state;
-      message(s,event.goal,'user',text,now);
+      s.ideaOpen=false;message(s,event.goal,'user',text,now);
       const chosen=AGENTS[event.agent]?event.agent:'xiaoyi';
       message(s,event.goal,'bot',['xiaoyi','research'].includes(chosen)?'我会先交给Workbuddy，再请千问 整理成草稿。任务和输出都留在当前目标。':`已交给${AGENTS[chosen].name}，任务和输出都会保留在当前目标。`,now);
       const id=`research-${++s.serial}`;
@@ -111,7 +129,7 @@ export function reduce(state, event, now=Date.now()) {
     case 'CHANNEL_SEND': {
       const text=String(event.text||'').trim(); if(!text) return state;
       s.channels[event.channel]??=[];
-      s.channels[event.channel].push({role:'user',text,time:'现在'},{role:'bot',text:event.channel==='ideas'?'想法已保存在本机会话中。':'已记录这条演示消息。此连接未接入真实账号，不会发送或读取外部资料。',time:'现在'}); break;
+      s.channels[event.channel].push({role:'user',text,time:'现在'},{role:'bot',text:(event.channel==='ideas'||event.channel.startsWith('idea-'))?'想法已保存在本机会话中。':'已记录这条演示消息。此连接未接入真实账号，不会发送或读取外部资料。',time:'现在'}); break;
     }
     case 'SUPPLEMENT_TASK': {
       const text=String(event.text||'').trim();if(!t||!text)return state;
@@ -169,7 +187,7 @@ export function reduce(state, event, now=Date.now()) {
   return s;
 }
 export function loadState(storage) {
-  try{const s=JSON.parse(storage.getItem(STORAGE_KEY));if(s?.schema===1 && Array.isArray(s.tasks)&&Array.isArray(s.goals)&&s.drafts&&s.session){const next=ensureAgentDemoTasks(migrateAgentIdentity(s));if(next!==s)saveState(storage,next);return next;}}catch{}
+  try{const s=JSON.parse(storage.getItem(STORAGE_KEY));if(s?.schema===1 && Array.isArray(s.tasks)&&Array.isArray(s.goals)&&s.drafts&&s.session){const next=ensureIdeaNodes(ensureAgentDemoTasks(migrateAgentIdentity(s)));if(next!==s)saveState(storage,next);return next;}}catch{}
   return seedState();
 }
 export function saveState(storage,state) { try{storage.setItem(STORAGE_KEY,JSON.stringify(state));return true;}catch{return false;} }
