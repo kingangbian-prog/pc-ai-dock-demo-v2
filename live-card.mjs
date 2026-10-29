@@ -10,7 +10,7 @@ export class LiveProgressCard {
     document.addEventListener('pointerover',e=>{
       const capsule=e.target.closest?.('.live-capsule');
       if(!capsule)return;
-      const pill=e.target.closest('.live-item')||capsule.querySelector('.live-item');
+      const pill=e.target.closest('.live-item');
       if(pill)this.show(pill.dataset.task);
     });
     document.addEventListener('pointerout',e=>{
@@ -89,7 +89,7 @@ export class LiveProgressCard {
     card.querySelector('.live-progress-feedback').textContent=task.instructions?.length?`已记录 ${task.instructions.length} 条补充 · 仅此任务`:'仅补充当前任务，不影响其他任务';
     const input=card.querySelector('input');card.querySelector('[type="submit"]').disabled=!input.value.trim();
     const trigger=this.trigger();
-    if(trigger){const r=trigger.getBoundingClientRect();const width=Math.min(284,innerWidth-24);card.style.left=Math.max(12,Math.min(innerWidth-width-12,r.x+r.width/2-width/2))+'px';card.style.top=r.bottom+10+'px';}
+    if(trigger){const r=trigger.getBoundingClientRect();if(!r.width||!r.height){this.dismiss(false);return;}const width=Math.min(284,innerWidth-24);card.style.left=Math.max(12,Math.min(innerWidth-width-12,r.x+r.width/2-width/2))+'px';card.style.top=r.bottom+10+'px';}
   }
   dismiss(suppress=false){
     if(suppress&&this.taskId)this.blocked.add(this.taskId);

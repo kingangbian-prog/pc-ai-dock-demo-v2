@@ -1,13 +1,13 @@
 import {icon} from './icons.mjs';
-import {LiveProgressCard} from './live-card.mjs';
+import {LiveProgressCard} from './live-card.mjs?v=20261029-menubar';
 import {DockFlip} from './dock-flip.mjs';
-import {runningAppKeys,canDismissTaskHover,launcherWindow,windowVisible,closeWindow,toggleWindow,toggleStart,claimAgentWindow,toggleAgent,releaseAgentHover} from './surfaces.mjs?v=20261028-calendar';
-import {AGENTS,AGENT_ORDER,goalAgents,ORDINARY_APPS,APP_NAMES,CONNECTIONS,STORAGE_KEY,seedState,reduce,loadState,saveState,statusInfo,hoverDetail} from './model.mjs?v=20261028-calendar';
+import {runningAppKeys,canDismissTaskHover,launcherWindow,windowVisible,closeWindow,toggleWindow,toggleStart,claimAgentWindow,toggleAgent,releaseAgentHover} from './surfaces.mjs?v=20261029-menubar';
+import {AGENTS,AGENT_ORDER,goalAgents,ORDINARY_APPS,APP_NAMES,CONNECTIONS,STORAGE_KEY,seedState,reduce,loadState,saveState,statusInfo,hoverDetail} from './model.mjs?v=20261029-menubar';
 
 const $=s=>document.querySelector(s);
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let state=loadState(localStorage);
-const ui={windows:new Map(),z:10,section:'goals',connection:'mail',activeTasks:{},agentSurfaces:{},suppressedAgents:new Set(),hoveredAgent:null,focusedAgent:null,outputGoal:state.selectedGoal,outputId:null,activeDraft:'personal',botInput:'',dockInput:'',agent:'xiaoyi',manual:state.session.manualText,choice:'专业用户',launcher:false,apps:false,pinnedAgent:null,sidebar:false,storageWarn:false};
+const ui={windows:new Map(),z:10,section:'goals',connection:'mail',activeTasks:{},agentSurfaces:{},suppressedAgents:new Set(),hoveredAgent:null,focusedAgent:null,outputGoal:state.selectedGoal,outputId:null,activeDraft:'personal',botInput:'',dockInput:'',agent:'xiaoyi',manual:state.session.manualText,choice:'专业用户',launcher:false,apps:false,pinnedAgent:null,sidebar:false,storageWarn:false,liveExpanded:false,liveScroll:0};
 const desktop=$('#desktop');
 // Persistent siblings keep the Dock animation alive while task windows refresh.
 desktop.innerHTML='<div id=desktop-content></div><div id=dock-mount></div>';
@@ -51,13 +51,13 @@ function openApp(app){const existing=[...ui.windows.values()].filter(w=>w.app===
 
 function statusBar(){
  const time=new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',hour12:false});
- return `<header class="systembar"><div class="system-left"><button class="system-home" data-action="launcher" aria-label="开始菜单">${icon('ring')}</button><strong>AI Workspace <b class=version-badge>2.0</b></strong><span class="system-divider"></span><span>桌面</span><span class="system-menu">文件</span><span class="system-menu">查看</span></div><div class="system-right"><span class="prototype-dot"></span><span class="prototype-label">本地交互原型 · 所有操作均为模拟</span><span class="system-divider"></span>${icon('wifi')}${icon('battery')}<span class="date">10 月 26 日</span><time>${time}</time></div></header>`;
+ return `<header class="systembar"><div class="system-left"><button class="system-home" data-action="launcher" aria-label="开始菜单">${icon('ring')}</button><strong>AI Workspace <b class=version-badge>2.0</b></strong><span class="system-divider"></span><span>桌面</span><span class="system-menu">文件</span><span class="system-menu">查看</span></div>${liveCapsule()}<div class="system-right"><span class="prototype-dot"></span><span class="prototype-label">本地交互原型 · 所有操作均为模拟</span><span class="system-divider"></span>${icon('wifi')}${icon('battery')}<span class="date">10 月 26 日</span><time>${time}</time></div></header>`;
 }
 function liveCapsule(){
  const priority={auth:0,input:1,result:2,failed:3,running:4,pausing:0,paused:5,resuming:4};
  const tasks=state.tasks.filter(t=>['auth','input','failed','running','pausing','resuming'].includes(t.status)||(t.status==='result'&&t.unread)).sort((a,b)=>(priority[a.status]??6)-(priority[b.status]??6));
  const representatives=[];for(const t of tasks)if(!representatives.some(x=>x.agent===t.agent))representatives.push(t);
- return `<aside class="live-capsule" aria-label="AI 实况"><div class="live-heading"><span class="live-orbit"></span><span>AI 实况</span><span class="live-count">${tasks.length}</span></div><div class="live-items">${representatives.slice(0,5).map(t=>{const [label,color]=statusInfo(t);return `<button class="live-item ${color}" aria-haspopup="dialog" aria-expanded="${liveCard.taskId===t.id}" data-action="task" data-task="${t.id}" aria-label="${esc(AGENTS[t.agent].name+' '+t.title+' '+label)}">${icon(AGENTS[t.agent].icon)}<span>${AGENTS[t.agent].short||'小艺'}${t.status==='result'?'有新结果':t.status==='auth'?'待授权':t.status==='input'?'待补充':t.status==='failed'?'失败':t.status==='pausing'?'待暂停':'进行中'}</span></button>`;}).join('')}</div><button class="live-more" data-action="bot" aria-label="在 Bot 查看全部任务">${icon('right')}</button></aside>`;
+ return `<aside class="live-capsule ${ui.liveExpanded?'is-expanded':''}" aria-label="AI 实况"><button id="live-summary" class="live-heading" data-action="live-summary" aria-label="${innerWidth<=760?(ui.liveExpanded?'收起 AI 实况状态':'展开 AI 实况状态'):'查看 AI 实况状态'}" ${innerWidth<=760?`aria-expanded="${ui.liveExpanded}" aria-controls="menu-live-items"`:''}><span class="live-orbit"></span><span>AI 实况</span><span class="live-count">${tasks.length}</span>${icon('chevron')}</button><div id="menu-live-items" class="live-items" ${innerWidth<=760&&!ui.liveExpanded?'inert aria-hidden="true"':''}>${representatives.slice(0,5).map(t=>{const [label,color]=statusInfo(t);return `<button id="live-item-${t.id}" class="live-item ${color}" aria-haspopup="dialog" aria-expanded="${liveCard.taskId===t.id}" data-action="task" data-task="${t.id}" aria-label="${esc(AGENTS[t.agent].name+' '+t.title+' '+label)}">${icon(AGENTS[t.agent].icon)}<span>${AGENTS[t.agent].short||'小艺'}${t.status==='result'?'有新结果':t.status==='auth'?'待授权':t.status==='input'?'待补充':t.status==='failed'?'失败':t.status==='pausing'?'待暂停':'进行中'}</span></button>`;}).join('')}</div><button class="live-more" data-action="bot" aria-label="在 Bot 查看全部任务">${icon('right')}</button></aside>`;
 }
 function desktopShortcuts(){return `<nav class="desktop-shortcuts" aria-label="桌面快捷方式"><button data-action="app" data-app="files">${appIcon('files')}<span>我的文件</span></button><button data-action="editor">${appIcon('editor')}<span>新品发布计划</span></button><button data-action="guide">${appIcon('shield')}<span>体验指南</span></button></nav><div class="desktop-signature"><span class="signature-ring">${icon('ring')}</span><div>你的桌面，你的节奏。<small>任务持续进行，控制权始终清晰。</small></div></div>`;}
 function controls(id){return `<div class="window-controls"><button data-action="minimize" data-window="${id}" aria-label="最小化窗口" class="min-control"><span></span></button><button data-action="maximize" data-window="${id}" aria-label="切换窗口大小" class="max-control"><span></span></button><button data-action="close" data-window="${id}" aria-label="关闭窗口" class="close-control">${icon('close')}</button></div>`;}
@@ -101,11 +101,12 @@ function launchers(){return `${ui.launcher?`<aside class="launcher glass-popover
 function render({forceDock=false}={}){
  const focused=document.activeElement;const focusId=focused?.id;let selection;try{selection=[focused.selectionStart,focused.selectionEnd];}catch{}
  const scrolls=[...document.querySelectorAll('.conversation-scroll,.result-content,.task-detail,.preview-task-list,.paper,.operation-log')].map(el=>[el.id||el.className,el.scrollTop]);
- desktopContent.innerHTML=statusBar()+liveCapsule()+desktopShortcuts()+`<div class="window-stage">${[...ui.windows.values()].filter(w=>!w.minimized).map(windowMarkup).join('')}</div>`+launchers();
+ desktopContent.innerHTML=statusBar()+desktopShortcuts()+`<div class="window-stage">${[...ui.windows.values()].filter(w=>!w.minimized).map(windowMarkup).join('')}</div>`+launchers();
  dockMount.dataset.flipping=String(dockFlip.active);
  if(!dockFlip.active||forceDock)dockMount.innerHTML=dock();
  for(const [key,top] of scrolls){const el=[...document.querySelectorAll('.conversation-scroll,.result-content,.task-detail,.preview-task-list,.paper,.operation-log')].find(e=>(e.id||e.className)===key);if(el)el.scrollTop=top;}
  if(focusId){const el=document.getElementById(focusId);if(el&&!el.disabled){el.focus({preventScroll:true});if(selection?.[0]!=null)try{el.setSelectionRange(...selection);}catch{}}}
+ const liveItems=$('.live-items');if(liveItems){liveItems.scrollLeft=ui.liveScroll;liveItems.addEventListener('scroll',()=>{ui.liveScroll=liveItems.scrollLeft;liveCard.update();},{passive:true});}
  const scroll=$('.dock-body');if(scroll){scroll.closest('.dock').classList.toggle('has-overflow',scroll.scrollWidth>scroll.clientWidth+1);scroll.scrollLeft=ui.dockScroll||0;scroll.addEventListener('scroll',()=>{ui.dockScroll=scroll.scrollLeft;syncAgentPreviews();},{passive:true});}
  syncAgentPreviews();
  liveCard.update();
@@ -133,6 +134,7 @@ desktop.addEventListener('click',e=>{
  const a=b.dataset.action;
  if(dockFlip.active&&b.closest('.dock'))return;
  const launcher=!!b.closest('.dock,.desktop-shortcuts,.launcher');
+ if(a==='live-summary'){if(innerWidth<=760){ui.liveExpanded=!ui.liveExpanded;render();}else document.querySelector('.live-item')?.focus();return;}
  if(a==='dock-scroll'){b.closest('.dock').querySelector('.dock-body').scrollBy({left:Number(b.dataset.dir)*250,behavior:'smooth'});return;}
  if(a==='task'){openTask(b.dataset.task);return;}
  if(a==='bot'){if(launcher)toggleWindow(ui,launcherWindow('bot'),showWindow);else showWindow('bot');ui.launcher=false;render();return;}
@@ -176,7 +178,7 @@ desktop.addEventListener('input',e=>{
  if(e.target.dataset.draftId){dispatch({type:'EDIT_DRAFT',id:e.target.dataset.draftId,text:e.target.value},{renderNow:false});e.target.closest('.window').querySelector('.editor-footer span').textContent=`${[...e.target.value].length} 字 · 本地草稿`;}
 });
 desktop.addEventListener('change',e=>{if(e.target.id==='dock-agent'){ui.agent=e.target.value;render();}if(e.target.name==='audience')ui.choice=e.target.value;});
-desktop.addEventListener('keydown',e=>{if(e.target.id==='bot-input'&&e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();send(ui.botInput);}if(e.key==='Escape'){ui.sidebar=false;ui.pinnedAgent=null;ui.launcher=false;ui.apps=false;render();}});
+desktop.addEventListener('keydown',e=>{if(e.target.id==='bot-input'&&e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();send(ui.botInput);}if(e.key==='Escape'){ui.liveExpanded=false;ui.sidebar=false;ui.pinnedAgent=null;ui.launcher=false;ui.apps=false;render();}});
 let drag;
 desktop.addEventListener('pointerdown',e=>{
  const section=e.target.closest('.window');if(section){const w=ui.windows.get(section.dataset.window);w.z=++ui.z;section.style.zIndex=w.z;}
